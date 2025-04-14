@@ -1,5 +1,24 @@
-SMAZ - compression for very small strings
------------------------------------------
+# Improvements to SMAZ
+
+**The original is at https://github.com/antirez/smaz.**
+
+This repo contains some improvements, well, changes that make it more suitable
+for me. These changes might break API compatibility.
+
+A tool for testing the library out has been added.
+
+# To Do
+
+* [ ] A python script to make a trie containing the most common substrings
+  weighted by their length to generate a new code book, and its inverse.
+  * [ ] Convert the python script to C and integrate into `tool.c`.
+* [ ] Improve `tool.c`.
+* [ ] Do some fuzzing.
+* [ ] Improve API
+* [ ] Turn into header only library
+* [ ] Add asserts
+
+# SMAZ - compression for very small strings
 
 Smaz is a simple compression library suitable for compressing very short
 strings. General purpose compression libraries will build the state needed
@@ -16,8 +35,7 @@ For example the string "the" is compressed into a single byte.
 
 To compare this with other libraries, think that like zlib will usually not be able to compress text shorter than 100 bytes.
 
-COMPRESSION EXAMPLES
---------------------
+## COMPRESSION EXAMPLES
 
 'This is a small string' compressed by 50%
 'foobar' compressed by 34%
@@ -39,23 +57,22 @@ by smaz:
 
 It can compress URLS pretty well:
 
-'http://google.com' compressed by 59%
-'http://programming.reddit.com' compressed by 52%
-'http://github.com/antirez/smaz/tree/master' compressed by 46%
+* 'http://google.com' compressed by 59%
+* 'http://programming.reddit.com' compressed by 52%
+* 'http://github.com/antirez/smaz/tree/master' compressed by 46%
 
-USAGE
------
+## USAGE
 
 The lib consists of just two functions:
 
-    int smaz_compress(char *in, int inlen, char *out, int outlen);
+	int smaz_compress(char *in, int inlen, char *out, int outlen);
 
 Compress the buffer 'in' of length 'inlen' and put the compressed data into
 'out' of max length 'outlen' bytes. If the output buffer is too short to hold
 the whole compressed string, outlen+1 is returned. Otherwise the length of the
 compressed string (less then or equal to outlen) is returned.
 
-    int smaz_decompress(char *in, int inlen, char *out, int outlen);
+	int smaz_decompress(char *in, int inlen, char *out, int outlen);
 
 Decompress the buffer 'in' of length 'inlen' and put the decompressed data into
 'out' of max length 'outlen' bytes. If the output buffer is too short to hold
@@ -65,7 +82,21 @@ not automatically put a nul-term at the end of the string if the original
 compressed string didn't included a nulterm.
 
 
-CREDITS
--------
+## CREDITS
 
-Small was writte by Salvatore Sanfilippo and is released under the BSD license. Check the COPYING file for more information.
+Small was written by Salvatore Sanfilippo and is released under the BSD license. Check the COPYING file for more information.
+
+## TODO
+
+* Improve CLI test utility
+* Turn into header only library
+* Improve API.
+
+
+Original TODO
+
+* const-correct the source code
+* release the ruby script to build new specialized dictionaries
+* play well against corrupted input in verbatim 253/254 codes memcpy()
+* play with some form of entropy coding like Huffman or range coding
+

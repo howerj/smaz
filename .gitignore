@@ -1,0 +1,7 @@
+*.a
+*.o
+*.exe
+*.smz
+*.orig
+smaz
+mangle

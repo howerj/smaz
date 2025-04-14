@@ -1,10 +1,10 @@
 #include <string.h>
 #include <assert.h>
 
-int smaz_compress(const char *in, int inlen, char *out, int outlen) {
+int smaz_compress(char *in, int inlen, char *out, int outlen) {
 	assert(in);
 	assert(out);
-	unsigned int h1 = 0,h2 = 0,h3 = 0;
+	unsigned int h1,h2,h3=0;
 	int verblen = 0, _outlen = outlen;
 	char verb[256], *_out = out;
 
@@ -61,27 +61,27 @@ int smaz_compress(const char *in, int inlen, char *out, int outlen) {
 	while(inlen) {
 		int j = 7, needed;
 		char *flush = NULL;
-		char *slot = NULL;
+		char *slot;
 
-		h1 = h2 = in[0] << 3;
+		h1 = h2 = in[0]<<3;
 		if (inlen > 1) h2 += in[1];
-		if (inlen > 2) h3 = h2 ^ in[2];
+		if (inlen > 2) h3 = h2^in[2];
 		if (j > inlen) j = inlen;
 
 		/* Try to lookup substrings into the hash table, starting from the
 		 * longer to the shorter substrings */
 		for (; j > 0; j--) {
 			switch(j) {
-			case 1: slot = Smaz_cb[h1 % 241]; break;
-			case 2: slot = Smaz_cb[h2 % 241]; break;
-			default: slot = Smaz_cb[h3 % 241]; break;
+			case 1: slot = Smaz_cb[h1%241]; break;
+			case 2: slot = Smaz_cb[h2%241]; break;
+			default: slot = Smaz_cb[h3%241]; break;
 			}
-			while (slot[0]) {
-				if (slot[0] == j && memcmp(slot + 1, in, j) == 0) {
+			while(slot[0]) {
+				if (slot[0] == j && memcmp(slot+1,in,j) == 0) {
 					/* Match found in the hash table,
 					 * prepare a verbatim bytes flush if needed */
 					if (verblen) {
-						needed = (verblen == 1) ? 2 : 2 + verblen;
+						needed = (verblen == 1) ? 2 : 2+verblen;
 						flush = out;
 						out += needed;
 						outlen -= needed;
@@ -95,7 +95,7 @@ int smaz_compress(const char *in, int inlen, char *out, int outlen) {
 					in += j;
 					goto out;
 				} else {
-					slot += slot[0] + 2;
+					slot += slot[0]+2;
 				}
 			}
 		}
@@ -131,10 +131,10 @@ out:
 	return out-_out;
 }
 
-int smaz_decompress(const char *in, int inlen, char *out, int outlen) {
+int smaz_decompress(char *in, int inlen, char *out, int outlen) {
 	assert(in);
 	assert(outlen);
-	const unsigned char *c = (const unsigned char*) in;
+	unsigned char *c = (unsigned char*) in;
 	char *_out = out;
 	int _outlen = outlen;
 
@@ -162,28 +162,29 @@ int smaz_decompress(const char *in, int inlen, char *out, int outlen) {
 		"e, ", " it", "whi", " ma", "ge", "x", "e c", "men", ".com"
 	};
 
-	while (inlen) { // TODO: assert lengths, possible infinite loop?
+	while(inlen) {
 		if (*c == 254) {
 			/* Verbatim byte */
 			if (outlen < 1) return _outlen+1;
-			*out = *(c + 1);
+			*out = *(c+1);
 			out++;
 			outlen--;
 			c += 2;
 			inlen -= 2;
 		} else if (*c == 255) {
 			/* Verbatim string */
-			int len = (*(c + 1)) + 1;
+			int len = (*(c+1))+1;
 			if (outlen < len) return _outlen+1;
-			memcpy(out,c + 2,len);
+			memcpy(out,c+2,len);
 			out += len;
 			outlen -= len;
-			c += 2 + len;
-			inlen -= 2 + len;
+			c += 2+len;
+			inlen -= 2+len;
 		} else {
 			/* Codebook entry */
 			char *s = Smaz_rcb[*c];
 			int len = strlen(s);
+
 			if (outlen < len) return _outlen+1;
 			memcpy(out,s,len);
 			out += len;
